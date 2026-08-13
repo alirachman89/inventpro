@@ -80,6 +80,15 @@ class RolesAndPermissionsSeeder extends Seeder
             'stock_opnames.submit',
             'stock_opnames.post',
             'stock_opnames.delete',
+            'borrows.view',
+            'borrows.create',
+            'borrows.update',
+            'borrows.submit',
+            'borrows.checkout',
+            'borrows.return',
+            'borrows.delete',
+            'reports.view',
+            'reports.export',
         ];
 
         foreach ($permissions as $permission) {
@@ -104,12 +113,15 @@ class RolesAndPermissionsSeeder extends Seeder
             'stock_movements.view', 'stock_movements.create',
             'stock_opnames.view', 'stock_opnames.create', 'stock_opnames.update',
             'stock_opnames.submit', 'stock_opnames.post', 'stock_opnames.delete',
+            'borrows.view', 'borrows.create', 'borrows.update', 'borrows.submit',
+            'borrows.checkout', 'borrows.return', 'borrows.delete',
         ];
 
         $stockView = [
             'items.view', 'item_stocks.view', 'asset_units.view', 'stock_ledgers.view',
             'stock_movements.view',
             'stock_opnames.view',
+            'borrows.view',
         ];
 
         $masterView = [
@@ -142,17 +154,21 @@ class RolesAndPermissionsSeeder extends Seeder
                 'audit_logs.view',
                 'approvals.manage', 'approvals.act',
                 'approval_demos.manage',
-            ], $masterData, $stockOps, $purchaseOps, ['goods_receipts.create']))),
+            ], $masterData, $stockOps, $purchaseOps, ['goods_receipts.create', 'reports.view', 'reports.export']))),
             'purchasing' => array_merge([
                 'dashboard.view',
                 'approval_demos.manage',
                 'clients.view',
+                'reports.view',
+                'reports.export',
             ], $masterView, $stockView, $vendorOps, $purchaseOps),
             'warehouse' => array_merge([
                 'dashboard.view',
                 'approval_demos.manage',
                 'clients.view',
                 'vendors.view',
+                'reports.view',
+                'reports.export',
             ], [
                 'units.view', 'categories.view', 'locations.view', 'racks.view',
             ], $stockOps, $grOps),
@@ -162,6 +178,8 @@ class RolesAndPermissionsSeeder extends Seeder
                 'purchases.view',
                 'purchases.export',
                 'stock_opnames.view',
+                'borrows.view',
+                'reports.view',
             ],
             'viewer' => array_merge([
                 'dashboard.view',
@@ -169,6 +187,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'purchases.view',
                 'purchases.export',
                 'goods_receipts.view',
+                'reports.view',
             ], $masterView, $stockView),
         ];
 

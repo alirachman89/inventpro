@@ -4,10 +4,11 @@
 |---|---|
 | **Phase** | 9 |
 | **Name** | Stock Opname |
-| **Status** | ⏳ PENDING QC (REVISE applied) |
+| **Status** | ✅ APPROVED |
 | **Based on** | Delivery Plan + Phase 8 APPROVED |
 | **Date** | 2026-08-14 |
-| **REVISE** | 2026-08-14 — Konteks dokumen di Detail Persetujuan |
+| **Approved** | 2026-08-14 |
+| **REVISE** | 2026-08-14 — Konteks dokumen + popup konfirmasi di Persetujuan |
 
 > **Approval Gate Phase 9**  
 > Jalankan QC di bawah, lalu balas **APPROVED** / **REVISE** / **REJECTED**.  
@@ -120,4 +121,4 @@ Password: `Password123!`
 
 | Decision | Tanggal | Catatan |
 |---|---|---|
-| ⏳ PENDING | — | Menunggu QC |
+| ✅ APPROVED | 2026-08-14 | Disetujui via chat ("approved"), setelah REVISE UX approval. |

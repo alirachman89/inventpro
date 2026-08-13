@@ -44,4 +44,9 @@ class Client extends Model
     {
         return $this->hasMany(AssetUnit::class, 'current_client_id');
     }
+
+    public function borrowRequests(): HasMany
+    {
+        return $this->hasMany(BorrowRequest::class);
+    }
 }

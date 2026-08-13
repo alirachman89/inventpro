@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             PurchaseOrderSeeder::class,
             StockMovementSeeder::class,
             StockOpnameSeeder::class,
+            BorrowRequestSeeder::class,
         ]);
     }
 }

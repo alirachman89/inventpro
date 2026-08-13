@@ -19,6 +19,7 @@ class DocumentNumberService
                 'prefix_gr' => 'goods_receipts',
                 'prefix_movement' => 'stock_movements',
                 'prefix_opname' => 'stock_opnames',
+                'prefix_borrow' => 'borrow_requests',
                 default => throw new \InvalidArgumentException("Prefix key tidak dikenal: {$settingKey}"),
             };
 

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Environment** | Local / Development only |
-| **Last seeded** | 2026-08-14 (Phase 9 Stock Opname) |
+| **Last seeded** | 2026-08-14 (Delivery complete — Phase 3–12 APPROVED) |
 | **Source** | `database/seeders/UserSeeder.php` + `RolesAndPermissionsSeeder.php` |
 
 > **Peringatan keamanan**  
@@ -34,9 +34,9 @@ Password123!
 | 1 | Super Admin | `superadmin@inventpro.local` | `Password123!` | `superadmin` | Full akses (bypass permission) |
 | 2 | Admin InventPro | `admin@inventpro.local` | `Password123!` | `admin` | Full master: Vendor, Client, Barang, Settings, Users, Approval |
 | 3 | Purchasing User | `purchasing@inventpro.local` | `Password123!` | `purchasing` | CRUD Vendor + Purchase Order, view Client/Barang |
-| 4 | Warehouse User | `warehouse@inventpro.local` | `Password123!` | `warehouse` | CRUD Barang/Stok, Mutasi, Opname, Goods Receipt, view PO |
+| 4 | Warehouse User | `warehouse@inventpro.local` | `Password123!` | `warehouse` | Stok, Mutasi, Opname, Peminjaman, GR, view PO |
 | 5 | Approver User | `approver@inventpro.local` | `Password123!` | `approver` | Dashboard, Persetujuan |
-| 6 | Viewer User | `viewer@inventpro.local` | `Password123!` | `viewer` | Dashboard, Audit Log, view master + barang |
+| 6 | Viewer User | `viewer@inventpro.local` | `Password123!` | `viewer` | Dashboard, Audit Log, view master + barang + laporan |
 
 ### Salin cepat — Superadmin
 
@@ -77,3 +77,6 @@ php artisan db:seed
 - QC Phase 7: `docs/phases/PHASE-07-DELIVERY.md`.
 - QC Phase 8: `docs/phases/PHASE-08-DELIVERY.md`.
 - QC Phase 9: `docs/phases/PHASE-09-DELIVERY.md`.
+- QC Phase 10: `docs/phases/PHASE-10-DELIVERY.md`.
+- QC Phase 11: `docs/phases/PHASE-11-DELIVERY.md`.
+- QC Phase 12: `docs/phases/PHASE-12-DELIVERY.md` + `docs/UAT-CHECKLIST.md`.

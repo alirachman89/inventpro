@@ -1,6 +1,7 @@
 <script setup>
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ConfirmModal from '@/Components/ConfirmModal.vue';
+import GlobalSearch from '@/Components/GlobalSearch.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import { useCan } from '@/composables/useCan';
@@ -85,6 +86,20 @@ const navItems = computed(() => {
             active: route().current('admin.stock-opnames.*'),
             show: can('stock_opnames.view'),
             icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
+        },
+        {
+            label: 'Peminjaman',
+            href: route('admin.borrows.index'),
+            active: route().current('admin.borrows.*'),
+            show: can('borrows.view'),
+            icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4',
+        },
+        {
+            label: 'Laporan',
+            href: route('admin.reports.index'),
+            active: route().current('admin.reports.*'),
+            show: can('reports.view'),
+            icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
         },
         {
             label: 'Client',
@@ -209,7 +224,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen">
+    <div class="min-h-screen overflow-x-hidden">
         <!-- Mobile overlay -->
         <div
             v-if="sidebarOpen"
@@ -270,17 +285,17 @@ onUnmounted(() => {
         </aside>
 
         <!-- Main -->
-        <div class="lg:pl-72">
+        <div class="min-w-0 lg:pl-72">
             <header
                 class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur"
             >
                 <div
-                    class="flex h-16 items-center justify-between gap-3 px-4 sm:px-6"
+                    class="flex h-14 items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6"
                 >
-                    <div class="flex items-center gap-3">
+                    <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                         <button
                             type="button"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 lg:hidden"
+                            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 lg:hidden"
                             @click="sidebarOpen = true"
                         >
                             <span class="sr-only">Buka menu</span>
@@ -298,13 +313,13 @@ onUnmounted(() => {
                                 />
                             </svg>
                         </button>
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                             <p
                                 class="truncate text-sm font-semibold text-slate-900"
                             >
                                 <slot name="header-title">InventPro</slot>
                             </p>
-                            <p class="truncate text-xs text-slate-500">
+                            <p class="hidden truncate text-xs text-slate-500 sm:block">
                                 <slot name="header-subtitle"
                                     >Platform inventory warehouse</slot
                                 >
@@ -312,7 +327,9 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                        <GlobalSearch />
+
                         <Dropdown align="right" width="72">
                             <template #trigger>
                                 <button
@@ -393,12 +410,14 @@ onUnmounted(() => {
                             </template>
                         </Dropdown>
 
-                        <div class="relative">
+                        <div class="relative shrink-0">
                             <Dropdown align="right" width="48">
                                 <template #trigger>
                                     <button
                                         type="button"
-                                        class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-sm hover:bg-slate-50"
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 sm:h-auto sm:w-auto sm:gap-2 sm:rounded-xl sm:px-2.5 sm:py-1.5"
+                                        title="Profil & keluar"
+                                        aria-label="Menu profil"
                                     >
                                         <span
                                             class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-xs font-bold text-white"
@@ -410,7 +429,7 @@ onUnmounted(() => {
                                             }}
                                         </span>
                                         <span
-                                            class="hidden max-w-[140px] truncate text-left sm:block"
+                                            class="hidden max-w-[140px] truncate text-left text-sm sm:block"
                                         >
                                             <span
                                                 class="block font-semibold text-slate-800"

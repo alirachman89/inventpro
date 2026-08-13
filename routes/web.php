@@ -14,22 +14,27 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StockMovementController;
 use App\Http\Controllers\Admin\StockOpnameController;
+use App\Http\Controllers\Admin\BorrowController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\ApprovalDemoController;
 use App\Http\Controllers\ApprovalRequestController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::redirect('/', '/login');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->middleware('permission:dashboard.view')->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)
+        ->middleware('permission:dashboard.view')
+        ->name('dashboard');
+
+    Route::get('/search', SearchController::class)->name('search');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -294,6 +299,42 @@ Route::middleware(['auth'])->group(function () {
         });
         Route::middleware('permission:stock_opnames.delete')->group(function () {
             Route::delete('/stock-opnames/{stockOpname}', [StockOpnameController::class, 'destroy'])->name('stock-opnames.destroy');
+        });
+
+        Route::middleware('permission:borrows.view')->group(function () {
+            Route::get('/borrows', [BorrowController::class, 'index'])->name('borrows.index');
+        });
+        Route::middleware('permission:borrows.create')->group(function () {
+            Route::get('/borrows/create', [BorrowController::class, 'create'])->name('borrows.create');
+            Route::post('/borrows', [BorrowController::class, 'store'])->name('borrows.store');
+        });
+        Route::middleware('permission:borrows.update')->group(function () {
+            Route::get('/borrows/{borrow}/edit', [BorrowController::class, 'edit'])->name('borrows.edit');
+            Route::put('/borrows/{borrow}', [BorrowController::class, 'update'])->name('borrows.update');
+        });
+        Route::middleware('permission:borrows.submit')->group(function () {
+            Route::post('/borrows/{borrow}/submit', [BorrowController::class, 'submit'])->name('borrows.submit');
+        });
+        Route::middleware('permission:borrows.checkout')->group(function () {
+            Route::post('/borrows/{borrow}/checkout', [BorrowController::class, 'checkout'])->name('borrows.checkout');
+        });
+        Route::middleware('permission:borrows.return')->group(function () {
+            Route::post('/borrows/{borrow}/return', [BorrowController::class, 'returnItems'])->name('borrows.return');
+        });
+        Route::middleware('permission:borrows.view')->group(function () {
+            Route::get('/borrows/{borrow}', [BorrowController::class, 'show'])->name('borrows.show');
+        });
+        Route::middleware('permission:borrows.delete')->group(function () {
+            Route::delete('/borrows/{borrow}', [BorrowController::class, 'destroy'])->name('borrows.destroy');
+        });
+
+        Route::middleware('permission:reports.view')->group(function () {
+            Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+            Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+        });
+        Route::middleware('permission:reports.export')->group(function () {
+            Route::get('/reports/{report}/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export-excel');
+            Route::get('/reports/{report}/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export-pdf');
         });
     });
 });

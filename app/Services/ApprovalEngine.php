@@ -7,6 +7,7 @@ use App\Models\ApprovalDemo;
 use App\Models\ApprovalRequest;
 use App\Models\ApprovalStep;
 use App\Models\ApprovalWorkflow;
+use App\Models\BorrowRequest;
 use App\Models\PurchaseOrder;
 use App\Models\StockOpname;
 use App\Models\User;
@@ -280,6 +281,7 @@ class ApprovalEngine
             ApprovalDemo::DOCUMENT_TYPE => ApprovalDemo::query()->find($request->document_id),
             PurchaseOrder::DOCUMENT_TYPE => PurchaseOrder::query()->find($request->document_id),
             StockOpname::DOCUMENT_TYPE => StockOpname::query()->find($request->document_id),
+            BorrowRequest::DOCUMENT_TYPE => BorrowRequest::query()->find($request->document_id),
             default => null,
         };
     }
@@ -298,6 +300,13 @@ class ApprovalEngine
         }
 
         if ($documentType === StockOpname::DOCUMENT_TYPE && $document instanceof StockOpname) {
+            $document->update([
+                'status' => 'submitted',
+                'submitted_at' => now(),
+            ]);
+        }
+
+        if ($documentType === BorrowRequest::DOCUMENT_TYPE && $document instanceof BorrowRequest) {
             $document->update([
                 'status' => 'submitted',
                 'submitted_at' => now(),
@@ -325,6 +334,13 @@ class ApprovalEngine
                 'approved_at' => now(),
             ]);
         }
+
+        if ($documentType === BorrowRequest::DOCUMENT_TYPE && $document instanceof BorrowRequest) {
+            $document->update([
+                'status' => 'approved',
+                'approved_at' => now(),
+            ]);
+        }
     }
 
     private function markDocumentRejected(string $documentType, ?Model $document): void
@@ -338,6 +354,10 @@ class ApprovalEngine
         }
 
         if ($documentType === StockOpname::DOCUMENT_TYPE && $document instanceof StockOpname) {
+            $document->update(['status' => 'rejected']);
+        }
+
+        if ($documentType === BorrowRequest::DOCUMENT_TYPE && $document instanceof BorrowRequest) {
             $document->update(['status' => 'rejected']);
         }
     }

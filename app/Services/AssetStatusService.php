@@ -72,4 +72,56 @@ class AssetStatusService
             );
         });
     }
+
+    public function checkoutBorrow(
+        AssetUnit $asset,
+        User $borrower,
+        string $clientId,
+        ?User $actor = null,
+        ?string $notes = null,
+    ): AssetUnit {
+        if ($asset->status !== 'available') {
+            throw new InvalidArgumentException("Unit {$asset->asset_tag} tidak available untuk dipinjam.");
+        }
+
+        return DB::transaction(function () use ($asset, $borrower, $clientId, $actor, $notes) {
+            $asset->current_holder_user_id = $borrower->id;
+            $asset->current_client_id = $clientId;
+            $asset->save();
+
+            return $this->changeStatus(
+                $asset->fresh(),
+                'borrowed',
+                $actor,
+                $notes ?? 'Checkout peminjaman',
+            );
+        });
+    }
+
+    public function returnBorrow(
+        AssetUnit $asset,
+        ?User $actor = null,
+        ?string $notes = null,
+        ?string $condition = null,
+    ): AssetUnit {
+        if ($asset->status !== 'borrowed') {
+            throw new InvalidArgumentException("Unit {$asset->asset_tag} tidak dalam status borrowed.");
+        }
+
+        return DB::transaction(function () use ($asset, $actor, $notes, $condition) {
+            $asset->current_holder_user_id = null;
+            $asset->current_client_id = null;
+            if ($condition) {
+                $asset->condition = $condition;
+            }
+            $asset->save();
+
+            return $this->changeStatus(
+                $asset->fresh(),
+                'available',
+                $actor,
+                $notes ?? 'Return peminjaman',
+            );
+        });
+    }
 }

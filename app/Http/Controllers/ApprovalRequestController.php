@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Approval\DecideApprovalRequest;
 use App\Models\ApprovalDemo;
 use App\Models\ApprovalRequest;
+use App\Models\BorrowRequest;
 use App\Models\PurchaseOrder;
 use App\Models\StockOpname;
 use App\Services\ApprovalEngine;
@@ -140,6 +141,7 @@ class ApprovalRequestController extends Controller
         return match ($item->document_type) {
             StockOpname::DOCUMENT_TYPE => $this->stockOpnameContext($item, $user),
             PurchaseOrder::DOCUMENT_TYPE => $this->purchaseOrderContext($item, $user),
+            BorrowRequest::DOCUMENT_TYPE => $this->borrowRequestContext($item, $user),
             ApprovalDemo::DOCUMENT_TYPE => $this->approvalDemoContext($item),
             default => [
                 'kind' => 'generic',
@@ -149,6 +151,53 @@ class ApprovalRequestController extends Controller
                 'url' => null,
             ],
         };
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function borrowRequestContext(ApprovalRequest $item, $user): ?array
+    {
+        $borrow = BorrowRequest::query()
+            ->with([
+                'borrower:id,name,email',
+                'client:id,code,name',
+                'lines.item:id,sku,name',
+                'lines.assetUnit:id,asset_tag,serial_number',
+            ])
+            ->find($item->document_id);
+
+        if (! $borrow) {
+            return null;
+        }
+
+        $url = $user->can('borrows.view')
+            ? route('admin.borrows.show', $borrow->id)
+            : null;
+
+        return [
+            'kind' => 'borrow_request',
+            'title' => $borrow->number,
+            'purpose' => 'Persetujuan peminjaman barang (peminjam karyawan ≠ client lokasi pakai).',
+            'url' => $url,
+            'url_label' => 'Buka detail Peminjaman',
+            'summary' => [
+                ['label' => 'Peminjam (Karyawan)', 'value' => $borrow->borrower?->name ?? '—'],
+                ['label' => 'Digunakan di Client', 'value' => trim(($borrow->client?->code ?? '').' — '.($borrow->client?->name ?? ''), ' —')],
+                ['label' => 'Tanggal pinjam', 'value' => $borrow->borrow_date?->format('Y-m-d') ?? '—'],
+                ['label' => 'Jatuh tempo', 'value' => $borrow->due_date?->format('Y-m-d') ?? '—'],
+                ['label' => 'Tujuan', 'value' => $borrow->purpose ?: '—'],
+            ],
+            'lines_title' => 'Barang dipinjam',
+            'line_columns' => ['Item', 'Unit / Qty', 'Catatan'],
+            'lines' => $borrow->lines->map(fn ($line) => [
+                ($line->item?->sku ?? '').' — '.($line->item?->name ?? ''),
+                $line->assetUnit
+                    ? $line->assetUnit->asset_tag.($line->assetUnit->serial_number ? ' / '.$line->assetUnit->serial_number : '')
+                    : $this->formatQty((float) $line->qty),
+                $line->notes ?: '—',
+            ])->all(),
+        ];
     }
 
     /**
@@ -272,8 +321,8 @@ class ApprovalRequestController extends Controller
         return match ($type) {
             StockOpname::DOCUMENT_TYPE => 'Stock Opname',
             PurchaseOrder::DOCUMENT_TYPE => 'Purchase Order',
+            BorrowRequest::DOCUMENT_TYPE => 'Peminjaman',
             ApprovalDemo::DOCUMENT_TYPE => 'Uji Approval',
-            'borrow_request' => 'Peminjaman',
             'asset_dispose' => 'Asset Dispose',
             default => $type,
         };

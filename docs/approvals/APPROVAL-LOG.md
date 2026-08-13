@@ -19,6 +19,17 @@ Date     : YYYY-MM-DD
 
 ## Entries
 
+### 2026-08-14 — Delivery Plan complete (Phase 3–12)
+
+```
+Document : docs/02-DELIVERY-PLAN.md (execution)
+Version  : —
+Decision : APPROVED (all coded phases)
+Notes    : Phase 3–12 masing-masing APPROVED via chat. InventPro delivery coding gate selesai.
+Approver : Product Owner
+Date     : 2026-08-14
+```
+
 ### 2026-08-13 — BRD/PRD
 
 ```
@@ -120,9 +131,36 @@ Date     : 2026-08-14
 ```
 Document : phases/PHASE-09-DELIVERY.md
 Version  : 1.0.1
-Decision : ⏳ PENDING QC (REVISE applied)
-Notes    : REVISE UX: konteks dokumen di Detail Persetujuan + popup konfirmasi Setujui/Tolak.
-Approver : —
+Decision : APPROVED
+Notes    : Disetujui via chat ("approved"). Termasuk REVISE UX konteks dokumen + popup konfirmasi.
+Approver : Product Owner
+Date     : 2026-08-14
+```
+
+```
+Document : phases/PHASE-10-DELIVERY.md
+Version  : 1.0.0
+Decision : APPROVED
+Notes    : Disetujui via chat ("approved").
+Approver : Product Owner
+Date     : 2026-08-14
+```
+
+```
+Document : phases/PHASE-11-DELIVERY.md
+Version  : 1.0.0
+Decision : APPROVED
+Notes    : Disetujui via chat ("approved").
+Approver : Product Owner
+Date     : 2026-08-14
+```
+
+```
+Document : changes/CR-GLOBAL-SEARCH-WORK-QUEUE.md
+Version  : 1.0.0
+Decision : APPROVED (implement)
+Notes    : Post Phase-12 CR: global search Ctrl+K + dashboard work queue.
+Approver : Product Owner
 Date     : 2026-08-14
 ```
 
