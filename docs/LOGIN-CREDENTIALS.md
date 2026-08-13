@@ -3,8 +3,8 @@
 | Field | Value |
 |---|---|
 | **Environment** | Local / Development only |
-| **Last seeded** | 2026-08-14 (Delivery complete — Phase 3–12 APPROVED) |
-| **Source** | `database/seeders/UserSeeder.php` + `RolesAndPermissionsSeeder.php` |
+| **Last seeded** | 2026-08-14 (DemoDashboardSeeder — dashboard/ops penuh) |
+| **Source** | `database/seeders/UserSeeder.php` + `RolesAndPermissionsSeeder.php` + `DemoDashboardSeeder.php` |
 
 > **Peringatan keamanan**  
 > Dokumen ini hanya untuk lokal/QC.  
@@ -74,6 +74,7 @@ php artisan db:seed
 - Registrasi publik (`/register`) dinonaktifkan.
 - Primary key user memakai UUID.
 - Label internal seperti “Phase / MVP” hanya di dokumen — tidak di UI. Lihat `docs/UI-CONVENTIONS.md`.
+- Setelah `migrate:fresh --seed`, `DemoDashboardSeeder` mengisi mutasi ~30 hari, status asset beragam, PO/GR, pinjam overdue, opname, dan antrian kerja agar Dashboard tidak kosong.
 - QC Phase 7: `docs/phases/PHASE-07-DELIVERY.md`.
 - QC Phase 8: `docs/phases/PHASE-08-DELIVERY.md`.
 - QC Phase 9: `docs/phases/PHASE-09-DELIVERY.md`.

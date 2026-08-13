@@ -203,10 +203,10 @@ const queuePriorityClass = (priority) => {
                         </h2>
                         <div class="flex gap-3 text-xs text-slate-500">
                             <span class="inline-flex items-center gap-1">
-                                <span class="h-2 w-2 rounded-full bg-emerald-500" /> In
+                                <span class="h-2 w-2 rounded-full bg-emerald-600" /> In
                             </span>
                             <span class="inline-flex items-center gap-1">
-                                <span class="h-2 w-2 rounded-full bg-sky-500" /> Out
+                                <span class="h-2 w-2 rounded-full bg-amber-500" /> Out
                             </span>
                         </div>
                     </div>
@@ -222,14 +222,14 @@ const queuePriorityClass = (priority) => {
                         >
                             <div class="flex h-40 w-full items-end justify-center gap-0.5">
                                 <div
-                                    class="w-1.5 rounded-t bg-emerald-500"
+                                    class="w-2 rounded-t bg-emerald-600"
                                     :style="{
                                         height: `${(row.inbound / chartMax) * 100}%`,
                                         minHeight: row.inbound > 0 ? '2px' : '0',
                                     }"
                                 />
                                 <div
-                                    class="w-1.5 rounded-t bg-sky-500"
+                                    class="w-2 rounded-t bg-amber-500"
                                     :style="{
                                         height: `${(row.outbound / chartMax) * 100}%`,
                                         minHeight: row.outbound > 0 ? '2px' : '0',
