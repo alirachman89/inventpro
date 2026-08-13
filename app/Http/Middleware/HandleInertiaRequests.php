@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -17,6 +18,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $notificationService = app(NotificationService::class);
 
         return [
             ...parent::share($request),
@@ -29,6 +31,19 @@ class HandleInertiaRequests extends Middleware
                     'permissions' => $user->getAllPermissions()->pluck('name')->values(),
                     'is_superadmin' => $user->isSuperAdmin(),
                 ] : null,
+            ],
+            'notifications' => [
+                'unread_count' => $user ? $notificationService->unreadCount($user) : 0,
+                'latest' => $user
+                    ? $notificationService->latestForUser($user)->map(fn ($n) => [
+                        'id' => $n->id,
+                        'title' => $n->title,
+                        'message' => $n->message,
+                        'link' => $n->link,
+                        'is_unread' => $n->read_at === null,
+                        'created_at' => $n->created_at?->timezone(config('app.timezone'))->format('d/m/Y H:i'),
+                    ])->values()
+                    : [],
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

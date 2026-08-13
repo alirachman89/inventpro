@@ -4,13 +4,14 @@
 |---|---|
 | **Product Name** | InventPro |
 | **Document Type** | BRD + PRD (Combined) |
-| **Version** | 1.5.0 |
-| **Status** | ✅ APPROVED |
+| **Version** | 1.6.1 |
+| **Status** | ✅ APPROVED (termasuk CR v1.6.1) |
 | **Owner** | Inventory Warehouse Manager / Product Owner |
 | **Authors** | Senior Full Stack Developer, Senior UI/UX |
 | **Created** | 2026-08-13 |
-| **Approved** | 2026-08-13 |
-| **Change note** | v1.5 — Client = lokasi/proyek pemakaian; peminjam = karyawan (dipisah) |
+| **Approved** | 2026-08-13 (v1.5.0); CR v1.6.1 2026-08-13 |
+| **Last Updated** | 2026-08-13 |
+| **Change note** | v1.6.1 — Bin=Could; stok wajib rak/`GENERAL`; field **label** pada rak |
 | **Tech Stack** | Laravel + Vue (Monolith), MySQL (UUID), RBAC dinamis, OWASP |
 
 > **Approval Gate #1 — SELESAI**  
@@ -65,9 +66,10 @@ InventPro menyelesaikan masalah tersebut dengan modul terintegrasi, ledger stok,
 
 | # | Modul | Ringkasan |
 |---|---|---|
-| 1 | Stock Management | Master barang, kategori, **satuan/UOM**, lokasi/gudang, stok per lokasi, min/max, barcode/SKU, **status barang/asset** |
+| 1 | Stock Management | Master barang, kategori, **satuan/UOM**, **multi-lokasi + rak**, stok per lokasi/rak, min/max, barcode/SKU, **status barang/asset** |
 | 1b | Asset / Item Status | Lifecycle & kondisi barang (available, borrowed, maintenance, damaged, disposed, dll.) + histori status |
 | 1c | Master Satuan (UOM) | Data master Unit of Measure: kode, nama, tipe, status; dipakai di item, PO, mutasi, laporan |
+| 1d | **Lokasi & Rak** | Master gudang/lokasi + rak di dalamnya; user dapat melihat item ada di lokasi & rak mana |
 | 2 | Vendor Management | Master vendor (pemasok), kontak, status, histori transaksi |
 | 2b | **Client Management** | Master client/proyek/site pemakaian — di mana barang dipakai (bukan selalu = peminjam) |
 | 3 | Purchase Management | PR/PO, approval PO (opsional), receiving (GR), update stok |
@@ -114,7 +116,7 @@ InventPro menyelesaikan masalah tersebut dengan modul terintegrasi, ledger stok,
 | **Admin Warehouse** | Operasional penuh stok, opname, in/out, laporan |
 | **Purchasing** | Vendor, PR/PO, receiving |
 | **Warehouse Staff** | Stock in/out, picking pinjam, input opname; pilih client saat issue/pinjam |
-| **Admin / Master Data** | Client & vendor master, UOM, kategori, lokasi |
+| **Admin / Master Data** | Client & vendor master, UOM, kategori, lokasi, rak |
 | **Approver / Manager** | Approve PO, opname adjustment, peminjaman |
 | **Auditor / Viewer** | Lihat laporan & audit, tanpa ubah data |
 
@@ -162,15 +164,18 @@ InventPro menyelesaikan masalah tersebut dengan modul terintegrasi, ledger stok,
 | STK-01 | CRUD Item (nama, SKU, barcode, kategori, **uom_id**, deskripsi, foto) | Must |
 | STK-02 | CRUD Kategori (master terpisah) | Must |
 | STK-02b | **CRUD Master Satuan / UOM** (lihat §5.3.0) | Must |
-| STK-03 | Multi-lokasi / gudang / rak (opsional rak fase 2) | Must |
-| STK-04 | Stok per item per lokasi (on-hand, reserved, available) | Must |
-| STK-05 | Min stock / reorder point + alert | Must |
+| STK-03 | **Multi-lokasi / gudang wajib** (lihat §5.3.0b) | Must |
+| STK-03b | **Master Rak wajib** di bawah lokasi (lihat §5.3.0b) | Must |
+| STK-04 | Stok per item per **lokasi + rak** (on-hand, reserved, available) | Must |
+| STK-04b | User dapat melihat **di lokasi mana & rak berapa** suatu item (contoh: Klem) | Must |
+| STK-05 | Min stock / reorder point + alert (per item; opsional per lokasi) | Must |
 | STK-06 | Soft delete + status aktif/nonaktif (master) | Must |
-| STK-07 | History mutasi per item | Must |
+| STK-07 | History mutasi per item (tampilkan lokasi & rak terkait) | Must |
 | STK-08 | Import/export Excel (fase lanjutan) | Could |
 | STK-09 | Tipe item: `consumable` (habis pakai) vs `asset` (tracked) | Must |
 | STK-10 | Lihat **status operasional** barang/asset di list, detail, dan filter | Must |
 | STK-11 | Item wajib terhubung ke UOM aktif dari master; qty selalu dalam base UOM item | Must |
+| STK-12 | Bin/slot di dalam rak | Could (backlog; rak sudah wajib) |
 
 ### 5.3.0 Master Satuan / UOM (Unit of Measure)
 
@@ -231,6 +236,96 @@ units (master UOM)
          └── dipakai di: stock, PO line, GR, opname, borrow, movement, reports
 ```
 
+### 5.3.0b Master Lokasi (Gudang) & Rak — **Wajib**
+
+Tujuan: user selalu bisa menjawab pertanyaan operasional seperti:
+
+> **“Klem ada di lokasi mana dan rak berapa?”**
+
+#### Hierarki penyimpanan (MVP)
+
+```
+Lokasi / Gudang  (contoh: Gudang Utama, Gudang Site B)
+ └── Rak         (contoh: A-01, B-02, RACK-03)
+      └── Bin/Slot (Could / backlog)
+```
+
+**Keputusan CR v1.6 / v1.6.1 (dikunci PO):**
+
+| Topik | Keputusan |
+|---|---|
+| Lokasi / gudang | **Must** |
+| Rak | **Must** |
+| Bin/slot | **Could** (backlog) |
+| Stok tanpa rak | **Tidak boleh** — setiap posisi stok wajib `rack_id` |
+| Rak default | Setiap lokasi punya rak **`GENERAL`** (auto-create) |
+| Label rak | Setiap rak punya field **`label`** (bisa diisi/diubah) |
+
+#### Field master `locations`
+
+| Field | Keterangan | Wajib |
+|---|---|---|
+| `id` | UUID | Ya |
+| `code` | Kode unik (GU-01, SITE-B) | Ya |
+| `name` | Nama lokasi/gudang | Ya |
+| `type` | `warehouse` \| `site` \| `transit` \| `other` | Ya |
+| `address` | Alamat | Tidak |
+| `is_active` | Aktif/nonaktif | Ya |
+
+#### Field master `racks`
+
+| Field | Keterangan | Wajib |
+|---|---|---|
+| `id` | UUID | Ya |
+| `location_id` | FK ke lokasi | Ya |
+| `code` | Kode unik **per lokasi** (`GENERAL`, `A-01`, `B-02`) | Ya |
+| `name` | Nama tampilan | Ya |
+| `label` | Label fisik/cetak/UI (contoh: `Rak Besi Zona B`, `GENERAL`) | Ya |
+| `description` | Catatan | Tidak |
+| `is_default` | True untuk rak `GENERAL` lokasi tersebut | Ya |
+| `is_active` | Aktif/nonaktif | Ya |
+
+> **Label rak** dipakai di UI, filter, breakdown stok, dan (nanti) cetak label.  
+> Boleh sama dengan `code` saat create, tetapi user dapat mengubah label tanpa mengubah `code`.
+
+#### Aturan rak `GENERAL`
+
+1. Saat lokasi baru dibuat → sistem **otomatis** membuat rak `code=GENERAL`, `is_default=true`, `label` default mis. `General` / `Umum`.  
+2. Rak `GENERAL` **tidak boleh dihapus** (boleh rename label).  
+3. Semua transaksi stok **wajib** pilih rak; jika user tidak menentukan rak khusus, default ke `GENERAL` lokasi terkait.  
+4. Tidak ada stok yang hanya terikat lokasi tanpa rak.
+
+#### Stok & penelusuran
+
+| ID | Requirement | Priority |
+|---|---|---|
+| LOC-01 | CRUD Lokasi/Gudang | Must |
+| LOC-02 | CRUD Rak milik suatu lokasi (termasuk field **label**) | Must |
+| LOC-03 | Seeder minimal **2 lokasi**, masing-masing **≥ 2 rak** (termasuk `GENERAL`) | Must |
+| LOC-04 | `item_stocks` keyed by `item_id + location_id + rack_id` (**rack_id wajib**) | Must |
+| LOC-05 | Detail Item menampilkan breakdown: lokasi → rak (**code + label**) → qty | Must |
+| LOC-06 | Pencarian/filter stok by item, lokasi, rak (code/label) | Must |
+| LOC-07 | Mutasi (in/out/transfer/GR/opname/pinjam) wajib lokasi + rak sumber/tujuan | Must |
+| LOC-08 | Asset unit serialized menyimpan `location_id` + `rack_id` saat di gudang | Must |
+| LOC-09 | Transfer antar lokasi/rak mengubah posisi stok + ledger | Must |
+| LOC-10 | Permission: `locations.*`, `racks.*` | Must |
+| LOC-11 | Lokasi/rak yang punya stok tidak hard-delete | Must |
+| LOC-12 | Auto-create rak `GENERAL` saat lokasi dibuat | Must |
+| LOC-13 | Rak `GENERAL` tidak dapat dihapus; label tetap dapat diubah | Must |
+| LOC-14 | Form mutasi: default rak = `GENERAL` bila belum dipilih | Must |
+| LOC-15 | Bin/slot di dalam rak | Could |
+
+#### Contoh tampilan UI (produk)
+
+| Item | Lokasi | Rak (code) | Label rak | Qty Available |
+|---|---|---|---|---|
+| Klem | Gudang Utama | B-02 | Rak Besi Zona B | 120 |
+| Klem | Gudang Utama | A-01 | Rak Aisle A | 30 |
+| Klem | Gudang Utama | GENERAL | Umum | 5 |
+| Klem | Gudang Site B | R-01 | Rak Site 1 | 15 |
+
+Di detail item **Klem**: ringkasan total + tabel posisi di atas.
+
 ### 5.3.1 Status Barang / Asset (Tracking)
 
 Tujuan: user selalu tahu **kondisi & posisi lifecycle** barang — bukan hanya qty di gudang.
@@ -283,7 +378,7 @@ InventPro membedakan **3 lapisan status** agar tidak ambigu:
 |---|---|---|
 | AST-01 | Field `item_type`: consumable \| asset | Must |
 | AST-02 | Flag `is_serialized` pada item asset | Must |
-| AST-03 | Master/unit asset: `asset_tag`, `serial_number`, `location_id`, `status`, `condition`, `current_holder_user_id`, `current_client_id` (nullable) | Must |
+| AST-03 | Master/unit asset: `asset_tag`, `serial_number`, `location_id`, `rack_id`, `status`, `condition`, `current_holder_user_id`, `current_client_id` (nullable) | Must |
 | AST-04 | Perubahan status hanya lewat aksi terkontrol (bukan edit bebas sembarang) | Must |
 | AST-05 | Aksi: Set Maintenance, Selesai Maintenance, Mark Damaged, Quarantine, Dispose (butuh permission/approval) | Must |
 | AST-06 | Integrasi otomatis: Borrow checkout → `borrowed`; return → `available` (atau `damaged` jika kondisi rusak) | Must |
@@ -465,7 +560,8 @@ Item: Scaffold Holding (asset/consumable sesuai master)
 
 | ID | Requirement | Priority |
 |---|---|---|
-| RPT-01 | Laporan stok terkini (filter lokasi/kategori) | Must |
+| RPT-01 | Laporan stok terkini (filter lokasi / **rak** / kategori) | Must |
+| RPT-01b | Laporan posisi barang (item → lokasi → rak → qty) | Must |
 | RPT-02 | Laporan mutasi stok (periode) | Must |
 | RPT-03 | Laporan PO & receiving | Must |
 | RPT-04 | Laporan vendor | Should |
@@ -729,8 +825,9 @@ Tambahan wajib:
 ### 7.3 Core Domain Model (ringkas)
 
 - `users`, `roles`, `permissions`, `model_has_*`
-- `categories`, `units` (**master UOM**), `locations`, `items` (FK `uom_id`), `item_stocks`
-- `asset_units` (serialized assets: tag, serial, status, condition, holder, location)
+- `categories`, `units` (**master UOM**), `locations`, `racks`, `items` (FK `uom_id`)
+- `item_stocks` (**item + location + rack**, on-hand/reserved/available)
+- `asset_units` (serialized: tag, serial, status, condition, holder, location, **rack**)
 - `asset_status_histories` (immutable status changes)
 - `stock_ledgers` (immutable movements)
 - `vendors`
@@ -845,7 +942,7 @@ Tambahan wajib:
 |---|---|
 | RBAC | Permissions semua modul + roles + mapping |
 | Users | Superadmin + 1 user per role default |
-| Master | Kategori, **UOM lengkap (seeder standar)**, lokasi contoh |
+| Master | Kategori, **UOM**, **≥2 lokasi**, **≥2 rak per lokasi**, contoh item (mis. Klem) tersebar multi rak |
 | Items | 20–50 item contoh + stok awal (campuran consumable & asset) |
 | Asset Units | 15–30 unit serialized dengan status beragam |
 | Vendors | 5–10 vendor |
@@ -896,7 +993,8 @@ Setiap laporan mendukung:
 7. Audit trail tercatat untuk create/update/delete, approval, RBAC, & posting dokumen.  
 8. Approval dinamis dapat dikonfigurasi admin minimal untuk PO, Opname, Borrow, Asset Dispose.  
 9. Notifikasi bell + halaman notifikasi berfungsi untuk approval & alert operasional.  
-10. Dokumen Delivery & Phase Delivery + QC manual tersedia per fase.
+10. Dokumen Delivery & Phase Delivery + QC manual tersedia per fase.  
+11. User dapat melihat posisi stok item per **lokasi + rak** (contoh: Klem di Gudang Utama / Rak B-02).
 
 ---
 
@@ -953,7 +1051,8 @@ Date     : YYYY-MM-DD
 Mohon jawab saat review/approval (boleh default usulan jika setuju):
 
 1. **FE pattern:** setuju **Inertia + Vue 3 + Tailwind**? (Usulan: Ya)  
-2. **Multi-gudang:** wajib di MVP? (Usulan: Ya, minimal 2 lokasi)  
+2. **Multi-gudang + Rak:** ~~opsional rak~~ → **DIPUTUSKAN (CR v1.6): wajib lokasi + rak di MVP**  
+
 3. **Purchase Request** terpisah dari PO, atau langsung PO? (Usulan: langsung PO + approval)  
 4. **Valuation method:** last purchase price vs moving average? (Usulan: last purchase price dulu)  
 5. **Bahasa UI:** ID only? (Usulan: ID)  
@@ -974,6 +1073,9 @@ Mohon jawab saat review/approval (boleh default usulan jika setuju):
 20. Perlu field kredit limit / terms untuk client? (Usulan: backlog)
 21. Perlu master **Project/Site** di bawah Client (1 client banyak site), atau cukup Client + alamat dulu? (Usulan: Client saja di MVP; Project/Site Could)
 22. Bolehkah satu request pinjam untuk banyak client? (Usulan: **tidak** — 1 request = 1 client; buat request terpisah jika beda client)
+23. **Bin/slot di dalam rak:** **DIPUTUSKAN = Could** (backlog)  
+24. **Stok wajib rak / GENERAL:** **DIPUTUSKAN = Ya** — setiap stok wajib `rack_id`; tiap lokasi auto punya rak `GENERAL`  
+25. **Label pada rak:** **DIPUTUSKAN = Ya** — field `label` wajib ada & dapat diedit per rak
 
 ---
 
@@ -1006,6 +1108,12 @@ Mohon jawab saat review/approval (boleh default usulan jika setuju):
 | Client | Customer/proyek/site tempat barang **digunakan** (bukan otomatis = peminjam) |
 | Context of use | Relasi “barang dipinjam X untuk dipakai di Client Y” |
 | Internal Unit | Jenis client untuk pemakaian internal (jika barang dipakai di unit sendiri) |
+| Location / Gudang | Tempat penyimpanan level atas (warehouse/site) |
+| Rak (Rack) | Sub-lokasi fisik di dalam gudang; wajib untuk posisi stok |
+| Label rak | Teks label fisik/UI per rak (bisa beda dari kode sistem) |
+| Rak GENERAL | Rak default tiap lokasi; tidak boleh dihapus; penampung stok umum |
+| Posisi stok | Kombinasi item + lokasi + rak (+ qty); tidak boleh tanpa rak |
+| Bin/Slot | Sub-rak (Could / backlog) |
 
 ---
 
@@ -1018,7 +1126,9 @@ Mohon jawab saat review/approval (boleh default usulan jika setuju):
 | 1.2.0-DRAFT | 2026-08-13 | InventPro Team | Penegasan Master Satuan/UOM (§5.3.0, UOM-01…08) + seeder standar |
 | 1.3.0-DRAFT | 2026-08-13 | InventPro Team | Dynamic Approval (§5.12), Notification bell+page (§5.13), Audit Log (§5.14) |
 | 1.4.0-DRAFT | 2026-08-13 | InventPro Team | Client Management (§5.4.1, CLI-01…10) + integrasi borrow/stock out/laporan |
-| 1.5.0-DRAFT | 2026-08-13 | InventPro Team | Clarifikasi Client ≠ Peminjam; model Karyawan A pinjam untuk Client A |
+| 1.5.0 | 2026-08-13 | InventPro Team | APPROVED — Client ≠ Peminjam |
+| 1.6.0 | 2026-08-13 | InventPro Team | **CR:** Multi-lokasi + Rak wajib (§5.3.0b); lacak item per lokasi/rak |
+| 1.6.1 | 2026-08-13 | InventPro Team | Kunci: Bin=Could; stok wajib rak/`GENERAL`; field label rak |
 
 ---
 
@@ -1026,6 +1136,7 @@ Mohon jawab saat review/approval (boleh default usulan jika setuju):
 
 | Role | Name | Decision | Date | Signature/Note |
 |---|---|---|---|---|
-| Product Owner | Product Owner | ✅ APPROVED | 2026-08-13 | Chat approval: "approved"; defaults §15 diterima |
+| Product Owner | Product Owner | ✅ APPROVED | 2026-08-13 | v1.5.0 base approved |
+| Product Owner | Product Owner | ✅ APPROVED CR v1.6.1 | 2026-08-13 | Chat: "Approved untuk CR" — Bin=Could; GENERAL; label rak |
 
-Dokumen lanjutan: `docs/02-DELIVERY-PLAN.md`.
+Scope lokasi+rak+label berlaku untuk Phase 4+. Phase 3 sudah ✅ APPROVED (`PHASE-03-DELIVERY.md`).

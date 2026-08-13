@@ -4,15 +4,15 @@
 |---|---|
 | **Product Name** | InventPro |
 | **Document Type** | Delivery Plan / Phase Roadmap |
-| **Version** | 1.0.0 |
-| **Status** | ✅ APPROVED |
-| **Based on** | `01-BRD-PRD.md` v1.5.0 (**APPROVED** 2026-08-13) |
+| **Version** | 1.1.1 |
+| **Status** | ✅ APPROVED (termasuk CR v1.1.1) |
+| **Based on** | `01-BRD-PRD.md` **v1.6.1** (CR APPROVED) |
 | **Created** | 2026-08-13 |
-| **Approved** | 2026-08-13 |
+| **Approved** | 2026-08-13 (v1.0.0); CR v1.1.1 2026-08-13 |
 | **Last Updated** | 2026-08-13 |
+| **Change note** | v1.1.1 — Bin=Could; stok wajib rak/`GENERAL`; rak punya **label** |
 
-> **Approval Gate #2 — SELESAI**  
-> Delivery Plan **APPROVED** 2026-08-13. Coding Phase 1 dapat dimulai.  
+> **Approval Gate #2 — SELESAI** (termasuk CR lokasi+rak).  
 > Tiap phase: coding → `docs/phases/PHASE-XX-DELIVERY.md` + QC manual → approval Anda → phase berikutnya.
 
 ---
@@ -41,6 +41,12 @@ Menjabarkan **fase pengerjaan**, urutan dependensi, deliverable per fase, kriter
 | Bahasa UI | Bahasa Indonesia |
 | 2FA | Backlog |
 | Project/Site di bawah Client | Backlog (Client + alamat dulu) |
+| **Multi-lokasi** | **Wajib** — minimal 2 lokasi di seeder |
+| **Rak** | **Wajib** — setiap stok punya `rack_id` |
+| **Rak GENERAL** | Auto-create per lokasi; tidak boleh dihapus; default mutasi |
+| **Label rak** | Field `label` wajib & editable per rak (tampil di UI/filter) |
+| **Bin/slot** | **Could** (backlog) |
+| Penelusuran posisi | User lihat item (mis. Klem) di lokasi + rak (code/label) |
 
 ---
 
@@ -88,8 +94,8 @@ BRD/PRD ✅
 | **1** | Foundation & Design System | Scaffold Laravel/Inertia/Vue/Tailwind, layout, tokens, auth dasar | — |
 | **2** | RBAC Dinamis + Superadmin + Audit Log | Roles/permissions UI, seed users, audit page | Phase 1 |
 | **3** | Notifications + Approval Engine | Bell, halaman notifikasi, workflow konfigurasi, My Approvals | Phase 2 |
-| **4** | Master Data Inti | UOM, kategori, lokasi/gudang, settings perusahaan | Phase 2 |
-| **5** | Stock & Asset Status | Item, stok, serialized asset, status lifecycle | Phase 4 |
+| **4** | Master Data Inti | UOM, kategori, **lokasi/gudang + rak**, settings perusahaan | Phase 2 |
+| **5** | Stock & Asset Status | Item, **stok per lokasi+rak**, posisi barang, asset status | Phase 4 |
 | **6** | Vendor & Client | Master vendor + client | Phase 2 |
 | **7** | Purchase & Receiving | PO + approval + GR → stock in | Phase 3, 5, 6 |
 | **8** | Stock In / Out / Transfer | Mutasi manual + ledger | Phase 3, 5, 6 |
@@ -169,41 +175,59 @@ BRD/PRD ✅
 
 ---
 
-### Phase 4 — Master Data Inti (UOM, Kategori, Lokasi, Settings)
+### Phase 4 — Master Data Inti (UOM, Kategori, Lokasi, Rak, Settings)
 
-**Tujuan:** Data master yang dibutuhkan stock & transaksi.
+**Tujuan:** Data master yang dibutuhkan stock & transaksi, termasuk hierarki penyimpanan.
 
 | Deliverable | Keterangan |
 |---|---|
 | CRUD UOM + seeder standar | §5.3.0 |
 | CRUD Kategori | |
-| CRUD Lokasi/Gudang (minimal 2 lokasi di seeder) | |
+| CRUD **Lokasi/Gudang** (min. 2 lokasi seeder) | §5.3.0b LOC-* |
+| CRUD **Rak** per lokasi (code, name, **label**, is_default) | Wajib |
+| Auto-create rak **`GENERAL`** saat lokasi dibuat | Must |
+| Rak `GENERAL` tidak bisa dihapus; **label** bisa diubah | Must |
 | Settings perusahaan + prefix nomor dokumen | |
-| Permissions per master | |
+| Permissions: `locations.*`, `racks.*`, dst. | |
 | Audit create/update/deactivate | |
+| Seeder: tiap lokasi punya `GENERAL` + rak lain ber-label | Must |
 
-**QC focus:** CRUD tiap master; nonaktif UOM tidak muncul di dropdown (siapkan form item stub/preview bila item belum ada — atau validasi di Phase 5 dengan re-QC).
+**QC focus:**  
+- Buat lokasi → pastikan rak `GENERAL` otomatis muncul  
+- Edit **label** rak (bukan hanya code)  
+- Coba hapus `GENERAL` → ditolak  
+- Nonaktif lokasi/rak tidak bisa dipilih di form stok (Phase 5)  
+- Tidak ada teks Phase/MVP di UI  
 
 **Phase Delivery file:** `docs/phases/PHASE-04-DELIVERY.md`
 
 ---
 
-### Phase 5 — Stock Management & Asset Status
+### Phase 5 — Stock Management & Asset Status (+ Posisi Lokasi/Rak)
 
-**Tujuan:** Item, stok per lokasi, asset serialized + status.
+**Tujuan:** Item, stok per **lokasi + rak**, penelusuran posisi barang, asset serialized + status.
 
 | Deliverable | Keterangan |
 |---|---|
 | CRUD Item (consumable/asset, UOM, kategori, min stock) | |
-| `item_stocks` per lokasi | |
-| Asset units (tag/serial, status, holder, client) | |
+| `item_stocks` per **item + location + rack** | LOC-04 |
+| Detail item: breakdown **Lokasi → Rak (code + label) → Qty** | LOC-05; contoh Klem |
+| Filter/cari stok by item, lokasi, rak code/label | LOC-06 |
+| Mutasi/default rak = `GENERAL` jika tidak dipilih khusus | LOC-14 |
+| Asset units (tag/serial, status, holder, client, location, **rack**) | |
 | Aksi status: maintenance, damaged, quarantine, dll. | |
 | Histori status asset | |
-| Stock ledger foundation (siap dipakai mutasi) | |
-| Seeder items + asset units berbagai status | |
+| Stock ledger foundation (catat location_id + rack_id) | |
+| Seeder: item **Klem** (dan lainnya) tersebar multi lokasi/rak | |
 | Low stock flag di list | |
 
-**QC focus:** buat item; lihat stok; buat asset unit; ubah status; filter status; mobile list.
+**QC focus (wajib):**  
+1. Login admin/warehouse  
+2. Buka item **Klem** (atau buat item serupa)  
+3. **Expected:** terlihat stok per lokasi & rak **plus label** (mis. Gudang Utama / B-02 / Rak Besi Zona B)  
+4. Ada qty di rak `GENERAL` bila dipakai  
+5. Filter lokasi/rak (code atau label) menampilkan posisi yang benar  
+6. Mobile: breakdown posisi tetap terbaca  
 
 **Phase Delivery file:** `docs/phases/PHASE-05-DELIVERY.md`
 
@@ -249,18 +273,18 @@ BRD/PRD ✅
 
 ### Phase 8 — Stock In / Out / Transfer
 
-**Tujuan:** Mutasi non-PO terkendali.
+**Tujuan:** Mutasi non-PO terkendali **dengan lokasi + rak**.
 
 | Deliverable | Keterangan |
 |---|---|
-| Stock In manual | |
-| Stock Out (termasuk issue terkait client bila perlu) | |
-| Transfer antar lokasi (`in_transit` untuk asset) | |
-| Validasi stok cukup | |
+| Stock In manual (pilih lokasi + rak tujuan) | |
+| Stock Out (lokasi + rak sumber; issue terkait client bila perlu) | |
+| Transfer antar lokasi/**rak** (`in_transit` untuk asset) | |
+| Validasi stok cukup pada posisi sumber | |
 | Ledger + audit + notifikasi relevan | |
-| Seeder sample movements | |
+| Seeder sample movements multi posisi | |
 
-**QC focus:** out melebihi stok ditolak; transfer lokasi A→B; issue dengan client.
+**QC focus:** out melebihi stok di rak ditolak; transfer Gudang A/Rak-1 → Gudang B/Rak-2; issue dengan client.
 
 **Phase Delivery file:** `docs/phases/PHASE-08-DELIVERY.md`
 
@@ -317,8 +341,8 @@ e. Return → status available
 
 | Deliverable | Keterangan |
 |---|---|
-| Stok terkini, mutasi, PO/GR, opname, peminjaman, status asset | |
-| Filter client/borrower/lokasi/periode | |
+| Stok terkini, **posisi lokasi/rak**, mutasi, PO/GR, opname, peminjaman, status asset | |
+| Filter client/borrower/lokasi/**rak**/periode | |
 | Laporan vendor/client (Should bila waktu cukup) | |
 | Export Excel & PDF | |
 | Permissions `reports.view` / `reports.export` | |
@@ -402,10 +426,10 @@ d. Expected result: ...
 | 5 Stock & Asset | L |
 | 6 Vendor & Client | S |
 | 7 Purchase & GR | L |
-| 8 Movements | M |
-| 9 Opname | M–L |
+| 8 Movements (lokasi+rak sumber/tujuan) | M |
+| 9 Opname (per lokasi / rak) | M–L |
 | 10 Borrow | L |
-| 11 Reports | M–L |
+| 11 Reports (+ posisi lokasi/rak) | M–L |
 | 12 Dashboard + Polish | M |
 
 S = kecil, M = sedang, L = besar.
@@ -420,6 +444,7 @@ S = kecil, M = sedang, L = besar.
 | Regresi stok antar phase | Ledger tunggal + transaksi DB + QC wajib tiap phase stok |
 | Scope laporan membengkak | Phase 11 prioritas Must dulu |
 | Mobile table padat | Card/list pattern sejak Phase 1 layout |
+| Stok tanpa rak membingungkan | Wajib rack_id; sediakan rak `GENERAL` bila perlu |
 
 ---
 
@@ -432,6 +457,7 @@ S = kecil, M = sedang, L = besar.
 - WebSocket realtime (Reverb)  
 - Native mobile app  
 - AI forecasting  
+- **Bin/slot di dalam rak** (Could; lokasi+rak sudah Must sejak CR v1.1)
 
 ---
 
@@ -439,9 +465,10 @@ S = kecil, M = sedang, L = besar.
 
 | Role | Name | Decision | Date | Note |
 |---|---|---|---|---|
-| Product Owner | Product Owner | ✅ APPROVED | 2026-08-13 | Chat: "approved" |
+| Product Owner | Product Owner | ✅ APPROVED | 2026-08-13 | v1.0.0 base |
+| Product Owner | Product Owner | ✅ APPROVED CR v1.1.1 | 2026-08-13 | Chat: "Approved untuk CR" |
 
-Langkah aktif: coding **Phase 1** → `docs/phases/PHASE-01-DELIVERY.md` → approval Phase 1.
+Phase 4+ memakai scope lokasi + rak `GENERAL` + label. Menunggu approval **Phase 3** sebelum lanjut coding Phase 4.
 
 ---
 
@@ -451,3 +478,5 @@ Langkah aktif: coding **Phase 1** → `docs/phases/PHASE-01-DELIVERY.md` → app
 |---|---|---|
 | 1.0.0-DRAFT | 2026-08-13 | Initial delivery plan based on BRD v1.5.0 approved |
 | 1.0.0 | 2026-08-13 | APPROVED by Product Owner |
+| 1.1.0 | 2026-08-13 | CR: Phase 4/5 multi-lokasi + rak wajib; QC posisi barang |
+| 1.1.1 | 2026-08-13 | CR refine: Bin=Could; GENERAL must; rack label field |
