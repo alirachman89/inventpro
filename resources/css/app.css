@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --color-brand-700: #0f766e;
+    --color-brand-600: #0d9488;
+    --color-brand-500: #14b8a6;
+    --color-brand-50: #f0fdfa;
+    --color-slate-900: #0f172a;
+    --color-slate-600: #475569;
+    --color-slate-100: #f1f5f9;
+    --color-slate-50: #f8fafc;
+    --color-success: #059669;
+    --color-warning: #d97706;
+    --color-danger: #dc2626;
+    --color-info: #0284c7;
+    --color-surface: #ffffff;
+    --color-border: #e2e8f0;
+}
+
+@layer base {
+    body {
+        @apply bg-slate-50 text-slate-900 antialiased;
+        background-image:
+            radial-gradient(circle at top right, rgba(13, 148, 136, 0.08), transparent 32%),
+            radial-gradient(circle at bottom left, rgba(2, 132, 199, 0.05), transparent 28%);
+        background-attachment: fixed;
+    }
+}
+
+@layer components {
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40;
+    }
+
+    .btn-primary {
+        @apply btn bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500;
+    }
+
+    .btn-secondary {
+        @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400;
+    }
+
+    .btn-danger {
+        @apply btn bg-danger text-white hover:bg-red-700 focus-visible:ring-red-500;
+    }
+
+    .btn-warning {
+        @apply btn bg-warning text-white hover:bg-amber-700 focus-visible:ring-amber-500;
+    }
+
+    .btn-ghost {
+        @apply btn bg-transparent text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-400;
+    }
+
+    .surface-card {
+        @apply rounded-2xl border border-slate-200/80 bg-white shadow-soft;
+    }
+
+    .page-title {
+        @apply text-2xl font-bold tracking-tight text-slate-900;
+    }
+
+    .page-subtitle {
+        @apply mt-1 text-sm text-slate-600;
+    }
+}
