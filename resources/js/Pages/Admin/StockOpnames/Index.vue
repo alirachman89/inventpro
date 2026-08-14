@@ -29,10 +29,10 @@ watch([search, status], () => {
 </script>
 
 <template>
-    <Head title="Stock Opname" />
+    <Head title="Opname Barang" />
 
     <AuthenticatedLayout>
-        <template #header-title>Stock Opname</template>
+        <template #header-title>Opname Barang</template>
         <template #header-subtitle>Hitung fisik → selisih → approval → posting</template>
 
         <div class="space-y-4">

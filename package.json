@@ -21,6 +21,7 @@
         "vue": "^3.4.0"
     },
     "dependencies": {
+        "jsbarcode": "^3.12.3",
         "vue-sonner": "^2.0.9"
     }
 }

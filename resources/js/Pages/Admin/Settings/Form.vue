@@ -106,7 +106,7 @@ function submit() {
                         <InputError class="mt-2" :message="form.errors.prefix_gr" />
                     </div>
                     <div>
-                        <InputLabel for="prefix_opname" value="Stock Opname" />
+                        <InputLabel for="prefix_opname" value="Opname Barang" />
                         <TextInput id="prefix_opname" v-model="form.prefix_opname" class="mt-1 block w-full" required />
                         <InputError class="mt-2" :message="form.errors.prefix_opname" />
                     </div>
@@ -116,7 +116,7 @@ function submit() {
                         <InputError class="mt-2" :message="form.errors.prefix_borrow" />
                     </div>
                     <div>
-                        <InputLabel for="prefix_movement" value="Mutasi stok" />
+                        <InputLabel for="prefix_movement" value="Mutasi barang" />
                         <TextInput id="prefix_movement" v-model="form.prefix_movement" class="mt-1 block w-full" required />
                         <InputError class="mt-2" :message="form.errors.prefix_movement" />
                     </div>

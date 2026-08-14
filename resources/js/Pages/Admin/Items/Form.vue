@@ -1,4 +1,5 @@
 <script setup>
+import BarcodePreview from '@/Components/BarcodePreview.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -6,7 +7,8 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed, watch } from 'vue';
+import axios from 'axios';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
     item: Object,
@@ -16,6 +18,7 @@ const props = defineProps({
 });
 
 const isEdit = computed(() => !!props.item);
+const generating = ref(false);
 
 const form = useForm({
     sku: props.item?.sku || '',
@@ -40,6 +43,21 @@ watch(
         }
     },
 );
+
+async function generateBarcode() {
+    generating.value = true;
+    try {
+        const { data } = await axios.post(route('admin.items.barcode.generate'), {
+            sku: form.sku || undefined,
+            exclude_id: props.item?.id || undefined,
+        });
+        form.barcode = data.barcode;
+    } catch {
+        // keep silent; validation errors rare for generate
+    } finally {
+        generating.value = false;
+    }
+}
 
 function submit() {
     if (isEdit.value) {
@@ -67,8 +85,24 @@ function submit() {
                     </div>
                     <div>
                         <InputLabel for="barcode" value="Barcode (opsional)" />
-                        <TextInput id="barcode" v-model="form.barcode" class="mt-1 block w-full" />
+                        <div class="mt-1 flex gap-2">
+                            <TextInput id="barcode" v-model="form.barcode" class="block w-full" />
+                            <SecondaryButton
+                                type="button"
+                                class="shrink-0"
+                                :disabled="generating"
+                                @click="generateBarcode"
+                            >
+                                {{ generating ? '…' : 'Generate' }}
+                            </SecondaryButton>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-500">
+                            Generate dari SKU (unik, format CODE128). Bisa diganti manual.
+                        </p>
                         <InputError class="mt-2" :message="form.errors.barcode" />
+                        <div v-if="form.barcode" class="mt-3 rounded-xl border border-slate-200 bg-white p-3">
+                            <BarcodePreview :value="form.barcode" :height="48" compact />
+                        </div>
                     </div>
                 </div>
 
@@ -130,7 +164,7 @@ function submit() {
                         <InputError class="mt-2" :message="form.errors.category_id" />
                     </div>
                     <div>
-                        <InputLabel for="min_stock" value="Min stock" />
+                        <InputLabel for="min_stock" value="Min barang" />
                         <TextInput
                             id="min_stock"
                             v-model="form.min_stock"

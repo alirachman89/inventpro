@@ -170,6 +170,10 @@ Route::middleware(['auth'])->group(function () {
 
         Route::middleware('permission:items.view')->group(function () {
             Route::get('/items', [ItemController::class, 'index'])->name('items.index');
+            Route::get('/items/lookup', [ItemController::class, 'lookup'])->name('items.lookup');
+        });
+        Route::middleware('permission:items.create|items.update')->group(function () {
+            Route::post('/items/barcode/generate', [ItemController::class, 'generateBarcode'])->name('items.barcode.generate');
         });
         Route::middleware('permission:items.create')->group(function () {
             Route::get('/items/create', [ItemController::class, 'create'])->name('items.create');
@@ -194,6 +198,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/items/{item}/asset-units', [AssetUnitController::class, 'store'])->name('asset-units.store');
         });
         Route::middleware('permission:asset_units.view')->group(function () {
+            Route::get('/asset-units/lookup', [AssetUnitController::class, 'lookup'])->name('asset-units.lookup');
             Route::get('/asset-units/{assetUnit}', [AssetUnitController::class, 'show'])->name('asset-units.show');
         });
         Route::middleware('permission:asset_units.set_status')->group(function () {

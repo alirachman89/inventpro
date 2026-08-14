@@ -226,7 +226,7 @@ class ApprovalRequestController extends Controller
             'title' => $opname->number,
             'purpose' => 'Persetujuan penyesuaian stok berdasarkan selisih opname.',
             'url' => $url,
-            'url_label' => 'Buka detail Stock Opname',
+            'url_label' => 'Buka detail Opname Barang',
             'summary' => [
                 ['label' => 'Lokasi', 'value' => trim(($opname->location?->code ?? '').' — '.($opname->location?->name ?? ''), ' —')],
                 ['label' => 'Tanggal', 'value' => $opname->opname_date?->format('Y-m-d') ?? '—'],
@@ -319,7 +319,7 @@ class ApprovalRequestController extends Controller
     private function documentTypeLabel(string $type): string
     {
         return match ($type) {
-            StockOpname::DOCUMENT_TYPE => 'Stock Opname',
+            StockOpname::DOCUMENT_TYPE => 'Opname Barang',
             PurchaseOrder::DOCUMENT_TYPE => 'Purchase Order',
             BorrowRequest::DOCUMENT_TYPE => 'Peminjaman',
             ApprovalDemo::DOCUMENT_TYPE => 'Uji Approval',

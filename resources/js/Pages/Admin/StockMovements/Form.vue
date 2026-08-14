@@ -1,4 +1,5 @@
 <script setup>
+import BarcodeScanInput from '@/Components/BarcodeScanInput.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
@@ -71,6 +72,26 @@ const removeLine = (index) => {
     }
 };
 
+/** Scan: same item → qty +1; else fill empty line or append. */
+const onBarcodeResolved = (item) => {
+    const existing = form.lines.find((line) => line.item_id === item.id);
+    if (existing) {
+        existing.qty = Number(existing.qty || 0) + 1;
+        return;
+    }
+
+    const blank = form.lines.find((line) => !line.item_id);
+    if (blank) {
+        blank.item_id = item.id;
+        blank.qty = Number(blank.qty) > 0 ? blank.qty : 1;
+        return;
+    }
+
+    const line = emptyLine();
+    line.item_id = item.id;
+    form.lines.push(line);
+};
+
 const submit = () => {
     form.post(route('admin.stock-movements.store'));
 };
@@ -80,7 +101,7 @@ const submit = () => {
     <Head :title="`Mutasi — ${typeLabels[form.type] || form.type}`" />
 
     <AuthenticatedLayout>
-        <template #header-title>Buat Mutasi Stok</template>
+        <template #header-title>Buat Mutasi Barang</template>
         <template #header-subtitle>
             {{ typeLabels[form.type] || form.type }} — setiap baris wajib lokasi + rak
         </template>
@@ -145,9 +166,18 @@ const submit = () => {
             </div>
 
             <div class="surface-card overflow-hidden">
-                <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                     <h3 class="text-sm font-semibold text-slate-900">Baris mutasi</h3>
                     <button type="button" class="btn-secondary" @click="addLine">+ Baris</button>
+                </div>
+                <div class="border-b border-slate-100 px-4 py-3">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-600">
+                        Scan barcode / SKU
+                    </label>
+                    <BarcodeScanInput autofocus @resolved="onBarcodeResolved" />
+                    <p class="mt-1 text-xs text-slate-500">
+                        Scan ulang item yang sama menambah qty (+1). Scanner USB = ketik + Enter.
+                    </p>
                 </div>
                 <div class="space-y-4 p-4">
                     <div

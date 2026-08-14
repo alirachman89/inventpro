@@ -24,7 +24,7 @@ class GoodsReceiptController extends Controller
                 ->with('error', 'PO belum siap untuk Goods Receipt.');
         }
 
-        $purchaseOrder->load(['vendor:id,code,name', 'lines.item:id,sku,name,item_type,is_serialized']);
+        $purchaseOrder->load(['vendor:id,code,name', 'lines.item:id,sku,barcode,name,item_type,is_serialized']);
 
         $locations = Location::query()
             ->with(['racks' => fn ($q) => $q->where('is_active', true)->orderByDesc('is_default')->orderBy('code')])
@@ -53,7 +53,7 @@ class GoodsReceiptController extends Controller
                     ->values()
                     ->map(fn ($line) => [
                         'id' => $line->id,
-                        'item' => $line->item?->only(['sku', 'name', 'item_type', 'is_serialized']),
+                        'item' => $line->item?->only(['sku', 'barcode', 'name', 'item_type', 'is_serialized']),
                         'qty_ordered' => (float) $line->qty_ordered,
                         'qty_received' => (float) $line->qty_received,
                         'qty_outstanding' => $line->qtyOutstanding(),

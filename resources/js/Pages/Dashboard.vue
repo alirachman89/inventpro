@@ -122,7 +122,7 @@ const queuePriorityClass = (priority) => {
                 </div>
                 <div class="surface-card p-5">
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Low Stock
+                        Barang rendah
                     </p>
                     <p class="mt-3 text-3xl font-bold text-amber-600">
                         {{ formatNumber(kpis.low_stock) }}

@@ -1,4 +1,5 @@
 <script setup>
+import BarcodeScanInput from '@/Components/BarcodeScanInput.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -6,7 +7,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 const props = defineProps({
     order: Object,
@@ -20,11 +21,13 @@ const form = useForm({
     lines: props.order.lines.map((line) => ({
         purchase_order_line_id: line.id,
         rack_id: '',
-        qty_received: line.qty_outstanding,
+        qty_received: 0,
         notes: '',
         _meta: line,
     })),
 });
+
+const highlightId = ref(null);
 
 const racks = computed(() => {
     const location = props.locations.find((item) => item.id === form.location_id);
@@ -41,6 +44,38 @@ watch(
     },
     { immediate: true },
 );
+
+const codeMatchesItem = (code, item) => {
+    if (!item) return false;
+    const needle = code.trim().toLowerCase();
+    return (
+        (item.sku && item.sku.toLowerCase() === needle) ||
+        (item.barcode && String(item.barcode).toLowerCase() === needle)
+    );
+};
+
+const resolveGrScan = async (code) => {
+    const line = form.lines.find((row) => codeMatchesItem(code, row._meta?.item));
+    if (!line) {
+        return null;
+    }
+
+    return {
+        label: `${line._meta.item.sku} — ${line._meta.item.name}`,
+        data: line,
+    };
+};
+
+const onBarcodeResolved = async (line) => {
+    const outstanding = Number(line._meta.qty_outstanding || 0);
+    const current = Number(line.qty_received || 0);
+    line.qty_received = Math.min(outstanding, current + 1);
+    highlightId.value = line.purchase_order_line_id;
+    await nextTick();
+    document
+        .getElementById(`gr-line-${line.purchase_order_line_id}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
 
 function submit() {
     form.transform((data) => ({
@@ -111,19 +146,46 @@ function submit() {
             </div>
 
             <div class="surface-card space-y-4 p-6">
-                <h2 class="text-sm font-semibold text-slate-800">Qty diterima</h2>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <h2 class="text-sm font-semibold text-slate-800">Qty diterima</h2>
+                </div>
+                <div>
+                    <InputLabel value="Scan barcode / SKU (baris PO)" />
+                    <div class="mt-1">
+                        <BarcodeScanInput
+                            mode="custom"
+                            autofocus
+                            placeholder="Scan item pada PO ini…"
+                            :resolve-fn="resolveGrScan"
+                            @resolved="onBarcodeResolved"
+                        />
+                    </div>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Scan menambah qty (+1) sampai sisa outstanding. Qty awal 0 — isi via scan
+                        atau ketik manual.
+                    </p>
+                </div>
                 <div
                     v-for="(line, index) in form.lines"
+                    :id="`gr-line-${line.purchase_order_line_id}`"
                     :key="line.purchase_order_line_id"
-                    class="grid gap-3 rounded-xl border border-slate-200 p-4 sm:grid-cols-12"
+                    class="grid gap-3 rounded-xl border p-4 sm:grid-cols-12"
+                    :class="
+                        highlightId === line.purchase_order_line_id
+                            ? 'border-emerald-400 bg-emerald-50/40'
+                            : 'border-slate-200'
+                    "
                 >
                     <div class="sm:col-span-4">
                         <p class="font-medium text-slate-900">
                             {{ line._meta.item?.name }}
                         </p>
                         <p class="text-xs text-slate-400">
-                            {{ line._meta.item?.sku }} · sisa
-                            {{ line._meta.qty_outstanding }}
+                            {{ line._meta.item?.sku }}
+                            <span v-if="line._meta.item?.barcode">
+                                · {{ line._meta.item.barcode }}
+                            </span>
+                            · sisa {{ line._meta.qty_outstanding }}
                         </p>
                     </div>
                     <div class="sm:col-span-3">

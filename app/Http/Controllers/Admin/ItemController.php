@@ -12,7 +12,10 @@ use App\Models\ItemStock;
 use App\Models\Location;
 use App\Models\Unit;
 use App\Services\AuditLogger;
+use App\Services\BarcodeService;
+use App\Services\ItemLookupService;
 use App\Services\StockService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -25,6 +28,8 @@ class ItemController extends Controller
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly StockService $stockService,
+        private readonly BarcodeService $barcodeService,
+        private readonly ItemLookupService $itemLookup,
     ) {}
 
     public function index(Request $request): Response
@@ -299,6 +304,39 @@ class ItemController extends Controller
         );
 
         return back()->with('success', 'Stok berhasil disesuaikan.');
+    }
+
+    public function lookup(Request $request): JsonResponse
+    {
+        $code = $request->string('code')->toString();
+        $item = $this->itemLookup->lookup($code);
+
+        if (! $item) {
+            return response()->json([
+                'found' => false,
+                'message' => 'Barcode / SKU tidak ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'found' => true,
+            'item' => $item,
+        ]);
+    }
+
+    public function generateBarcode(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'sku' => ['nullable', 'string', 'max:64'],
+            'exclude_id' => ['nullable', 'uuid', 'exists:items,id'],
+        ]);
+
+        return response()->json([
+            'barcode' => $this->barcodeService->generate(
+                $data['sku'] ?? null,
+                $data['exclude_id'] ?? null,
+            ),
+        ]);
     }
 
     /**

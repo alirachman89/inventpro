@@ -27,7 +27,7 @@ class ApprovalWorkflowSeeder extends Seeder
             ],
             [
                 'document_type' => 'stock_opname',
-                'name' => 'Stock Opname',
+                'name' => 'Opname Barang',
                 'steps' => [
                     ['name' => 'Persetujuan Adjustment', 'approver_role' => 'approver', 'mode' => 'any'],
                 ],

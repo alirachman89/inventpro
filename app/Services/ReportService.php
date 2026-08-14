@@ -87,7 +87,7 @@ class ReportService
 
         return [
             'key' => 'mutations',
-            'title' => 'Laporan Mutasi Stok',
+            'title' => 'Laporan Mutasi Barang',
             'columns' => ['Waktu', 'SKU', 'Nama', 'Lokasi', 'Rak', 'Tipe', 'Delta', 'Sebelum', 'Sesudah', 'Oleh', 'Catatan'],
             'rows' => $rows,
             'meta' => array_merge(
@@ -339,7 +339,7 @@ class ReportService
     {
         return [
             ['key' => 'stock', 'title' => 'Stok Terkini / Posisi', 'description' => 'Item → lokasi → rak → qty'],
-            ['key' => 'mutations', 'title' => 'Mutasi Stok', 'description' => 'Ledger per periode'],
+            ['key' => 'mutations', 'title' => 'Mutasi Barang', 'description' => 'Ledger per periode'],
             ['key' => 'purchases', 'title' => 'PO & Receiving', 'description' => 'Purchase order dan jumlah GR'],
             ['key' => 'opnames', 'title' => 'Opname & Selisih', 'description' => 'Sesi opname dan baris berselisih'],
             ['key' => 'borrows', 'title' => 'Peminjaman & Overdue', 'description' => 'Filter peminjam / client'],

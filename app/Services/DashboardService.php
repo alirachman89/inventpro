@@ -193,7 +193,7 @@ class DashboardService
         foreach ($lowItems as $item) {
             $alerts[] = [
                 'type' => 'warning',
-                'title' => 'Low stock',
+                'title' => 'Barang rendah',
                 'message' => "{$item->sku} — {$item->name} (on hand ".((float) ($item->stock_sum ?? 0))." / min {$item->min_stock})",
                 'href' => route('admin.items.show', $item->id),
             ];

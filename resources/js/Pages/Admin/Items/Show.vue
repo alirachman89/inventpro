@@ -1,4 +1,5 @@
 <script setup>
+import BarcodePreview from '@/Components/BarcodePreview.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -63,6 +64,10 @@ function submitAdjust() {
         },
     });
 }
+
+function printBarcode() {
+    window.print();
+}
 </script>
 
 <template>
@@ -116,7 +121,7 @@ function submitAdjust() {
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs uppercase tracking-wide text-slate-400">Min stock</p>
+                    <p class="text-xs uppercase tracking-wide text-slate-400">Min barang</p>
                     <p class="font-medium text-slate-800">{{ item.min_stock }}</p>
                 </div>
                 <div>
@@ -125,6 +130,40 @@ function submitAdjust() {
                         {{ item.is_active ? 'Aktif' : 'Nonaktif' }}
                     </p>
                 </div>
+            </div>
+
+            <div
+                v-if="item.barcode"
+                class="surface-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between print:border print:shadow-none"
+            >
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-slate-400">Barcode</p>
+                    <p class="font-mono text-sm font-medium text-slate-800">{{ item.barcode }}</p>
+                    <p class="mt-1 text-xs text-slate-500 print:hidden">
+                        {{ item.sku }} — {{ item.name }}
+                    </p>
+                </div>
+                <div class="flex flex-col items-start gap-3 sm:items-end">
+                    <div class="rounded-xl border border-slate-200 bg-white p-3">
+                        <BarcodePreview :value="item.barcode" :height="64" />
+                    </div>
+                    <button type="button" class="btn-secondary print:hidden" @click="printBarcode">
+                        Cetak label
+                    </button>
+                </div>
+            </div>
+            <div
+                v-else
+                class="surface-card flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:justify-between print:hidden"
+            >
+                <p class="text-sm text-slate-600">Belum ada barcode untuk barang ini.</p>
+                <Link
+                    v-if="can('items.update')"
+                    :href="route('admin.items.edit', item.id)"
+                    class="btn-secondary"
+                >
+                    Generate di Edit
+                </Link>
             </div>
 
             <div class="surface-card overflow-hidden">

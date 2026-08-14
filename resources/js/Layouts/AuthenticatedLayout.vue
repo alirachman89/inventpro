@@ -74,14 +74,14 @@ const navItems = computed(() => {
             icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
         },
         {
-            label: 'Mutasi Stok',
+            label: 'Mutasi Barang',
             href: route('admin.stock-movements.index'),
             active: route().current('admin.stock-movements.*'),
             show: can('stock_movements.view'),
             icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4',
         },
         {
-            label: 'Stock Opname',
+            label: 'Opname Barang',
             href: route('admin.stock-opnames.index'),
             active: route().current('admin.stock-opnames.*'),
             show: can('stock_opnames.view'),

@@ -8,10 +8,13 @@ use App\Http\Requests\Admin\StoreAssetUnitRequest;
 use App\Models\AssetUnit;
 use App\Models\Client;
 use App\Models\Item;
+use App\Services\AssetLookupService;
 use App\Services\AssetStatusService;
 use App\Services\AuditLogger;
 use App\Services\StockService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,6 +26,7 @@ class AssetUnitController extends Controller
         private readonly AuditLogger $auditLogger,
         private readonly StockService $stockService,
         private readonly AssetStatusService $assetStatusService,
+        private readonly AssetLookupService $assetLookup,
     ) {}
 
     public function create(Item $item): Response|RedirectResponse
@@ -159,6 +163,25 @@ class AssetUnitController extends Controller
         );
 
         return back()->with('success', 'Status asset diperbarui.');
+    }
+
+    public function lookup(Request $request): JsonResponse
+    {
+        $code = $request->string('code')->toString();
+        $availableOnly = $request->boolean('available_only');
+        $asset = $this->assetLookup->lookup($code, $availableOnly);
+
+        if (! $asset) {
+            return response()->json([
+                'found' => false,
+                'message' => 'Asset tag / serial tidak ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'found' => true,
+            'asset' => $asset,
+        ]);
     }
 
     /**

@@ -30,11 +30,11 @@ watch([search, type], () => {
 </script>
 
 <template>
-    <Head title="Mutasi Stok" />
+    <Head title="Mutasi Barang" />
 
     <AuthenticatedLayout>
-        <template #header-title>Mutasi Stok</template>
-        <template #header-subtitle>Stock In / Out / Transfer (lokasi + rak)</template>
+        <template #header-title>Mutasi Barang</template>
+        <template #header-subtitle>Barang masuk / keluar / transfer (lokasi + rak)</template>
 
         <div class="space-y-4">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -60,13 +60,13 @@ watch([search, type], () => {
                         :href="route('admin.stock-movements.create', { type: 'in' })"
                         class="btn-primary"
                     >
-                        Stock In
+                        Barang Masuk
                     </Link>
                     <Link
                         :href="route('admin.stock-movements.create', { type: 'out' })"
                         class="btn-secondary"
                     >
-                        Stock Out
+                        Barang Keluar
                     </Link>
                     <Link
                         :href="route('admin.stock-movements.create', { type: 'transfer' })"

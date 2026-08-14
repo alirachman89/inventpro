@@ -1,4 +1,5 @@
 <script setup>
+import BarcodePreview from '@/Components/BarcodePreview.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -26,6 +27,10 @@ function submit() {
         preserveScroll: true,
         onSuccess: () => form.reset('notes'),
     });
+}
+
+function printLabel() {
+    window.print();
 }
 </script>
 
@@ -92,6 +97,29 @@ function submit() {
                         </span>
                         <span v-else>—</span>
                     </p>
+                </div>
+            </div>
+
+            <div
+                class="surface-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between print:border print:shadow-none"
+            >
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-slate-400">Label asset tag</p>
+                    <p class="font-mono text-sm font-medium text-slate-800">
+                        {{ asset.asset_tag }}
+                    </p>
+                    <p class="mt-1 text-xs text-slate-500 print:hidden">
+                        {{ asset.item?.sku }} — {{ asset.item?.name }}
+                        <span v-if="asset.serial_number"> · SN {{ asset.serial_number }}</span>
+                    </p>
+                </div>
+                <div class="flex flex-col items-start gap-3 sm:items-end">
+                    <div class="rounded-xl border border-slate-200 bg-white p-3">
+                        <BarcodePreview :value="asset.asset_tag" :height="64" />
+                    </div>
+                    <button type="button" class="btn-secondary print:hidden" @click="printLabel">
+                        Cetak label
+                    </button>
                 </div>
             </div>
 

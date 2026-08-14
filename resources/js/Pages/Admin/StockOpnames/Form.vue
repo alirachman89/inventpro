@@ -18,10 +18,10 @@ const submit = () => form.post(route('admin.stock-opnames.store'));
 </script>
 
 <template>
-    <Head title="Buat Stock Opname" />
+    <Head title="Buat Opname Barang" />
 
     <AuthenticatedLayout>
-        <template #header-title>Buat Stock Opname</template>
+        <template #header-title>Buat Opname Barang</template>
         <template #header-subtitle>
             Pilih lokasi — sistem generate daftar item per rak
         </template>

@@ -84,7 +84,7 @@ class StockOpnameController extends Controller
             'location:id,code,name',
             'pic:id,name',
             'creator:id,name',
-            'lines.item:id,sku,name',
+            'lines.item:id,sku,barcode,name',
             'lines.rack:id,code,label',
         ]);
 
@@ -113,7 +113,7 @@ class StockOpnameController extends Controller
                 'can_post' => $stockOpname->canPost(),
                 'lines' => $stockOpname->lines->map(fn ($line) => [
                     'id' => $line->id,
-                    'item' => $line->item?->only(['sku', 'name']),
+                    'item' => $line->item?->only(['sku', 'barcode', 'name']),
                     'rack' => $line->rack?->only(['code', 'label']),
                     'condition' => $line->condition,
                     'qty_system' => (float) $line->qty_system,

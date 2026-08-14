@@ -1,9 +1,10 @@
 <script setup>
+import BarcodeScanInput from '@/Components/BarcodeScanInput.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { useCan } from '@/composables/useCan';
 import { useConfirm } from '@/composables/useConfirm';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 
 const props = defineProps({
     opname: Object,
@@ -13,6 +14,7 @@ const props = defineProps({
 
 const { can } = useCan();
 const { confirm } = useConfirm();
+const highlightId = ref(null);
 
 const form = useForm({
     lines: props.opname.lines.map((line) => ({
@@ -39,6 +41,39 @@ const syncFormLines = () => {
         qty_counted: line.qty_counted ?? '',
         notes: line.notes || '',
     }));
+};
+
+const codeMatchesItem = (code, item) => {
+    if (!item) return false;
+    const needle = code.trim().toLowerCase();
+    return (
+        (item.sku && item.sku.toLowerCase() === needle) ||
+        (item.barcode && String(item.barcode).toLowerCase() === needle)
+    );
+};
+
+const resolveOpnameScan = async (code) => {
+    const index = props.opname.lines.findIndex((line) => codeMatchesItem(code, line.item));
+    if (index < 0) {
+        return null;
+    }
+
+    const line = props.opname.lines[index];
+    return {
+        label: `${line.item.sku} / ${line.rack?.code || '-'}`,
+        data: { index, line },
+    };
+};
+
+const onBarcodeResolved = async ({ index, line }) => {
+    const current = form.lines[index].qty_counted;
+    const base = current === '' || current === null ? 0 : Number(current);
+    form.lines[index].qty_counted = base + 1;
+    highlightId.value = line.id;
+    await nextTick();
+    const nodes = document.querySelectorAll(`[data-opn-line="${line.id}"]`);
+    const visible = [...nodes].find((el) => el.offsetParent !== null) || nodes[0];
+    visible?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
 const saveCounts = () => {
@@ -178,12 +213,31 @@ const canEdit = computed(() => props.opname.can_edit && can('stock_opnames.updat
                 </div>
             </div>
 
+            <div v-if="canEdit" class="surface-card space-y-2 p-4">
+                <label class="block text-xs font-medium text-slate-600">
+                    Scan barcode / SKU
+                </label>
+                <BarcodeScanInput
+                    mode="custom"
+                    autofocus
+                    placeholder="Scan item pada daftar opname…"
+                    :resolve-fn="resolveOpnameScan"
+                    @resolved="onBarcodeResolved"
+                />
+                <p class="text-xs text-slate-500">
+                    Setiap scan menambah qty fisik (+1) pada baris item yang cocok (rak pertama
+                    jika ada beberapa).
+                </p>
+            </div>
+
             <!-- Mobile-friendly card list -->
             <div class="space-y-3 md:hidden">
                 <div
                     v-for="(line, index) in opname.lines"
                     :key="line.id"
+                    :data-opn-line="line.id"
                     class="surface-card space-y-3 p-4"
+                    :class="highlightId === line.id ? 'ring-2 ring-emerald-400' : ''"
                 >
                     <div>
                         <p class="font-semibold text-slate-900">{{ line.item?.sku }}</p>
@@ -247,7 +301,12 @@ const canEdit = computed(() => props.opname.can_edit && can('stock_opnames.updat
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <tr v-for="(line, index) in opname.lines" :key="line.id">
+                            <tr
+                                v-for="(line, index) in opname.lines"
+                                :key="line.id"
+                                :data-opn-line="line.id"
+                                :class="highlightId === line.id ? 'bg-emerald-50/60' : ''"
+                            >
                                 <td class="px-4 py-3">
                                     <div class="font-medium text-slate-900">
                                         {{ line.item?.sku }}

@@ -166,8 +166,8 @@ class StockMovementController extends Controller
     private function typeLabels(): array
     {
         return [
-            'in' => 'Stock In',
-            'out' => 'Stock Out',
+            'in' => 'Barang Masuk',
+            'out' => 'Barang Keluar',
             'transfer' => 'Transfer',
         ];
     }

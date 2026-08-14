@@ -1,4 +1,5 @@
 <script setup>
+import BarcodeScanInput from '@/Components/BarcodeScanInput.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
@@ -40,6 +41,41 @@ const unitLabel = (id) => {
     const unit = props.assetUnits.find((item) => item.id === id);
     if (!unit) return '';
     return `${unit.asset_tag} — ${unit.item?.sku} (${unit.location_code}/${unit.rack_code})`;
+};
+
+const resolveBorrowScan = async (code) => {
+    const needle = code.trim().toLowerCase();
+    const unit = props.assetUnits.find(
+        (item) =>
+            item.asset_tag?.toLowerCase() === needle ||
+            item.serial_number?.toLowerCase() === needle,
+    );
+
+    if (!unit) {
+        return null;
+    }
+
+    return {
+        label: `${unit.asset_tag} — ${unit.item?.sku || ''}`,
+        data: unit,
+    };
+};
+
+const onBarcodeResolved = (unit) => {
+    if (form.lines.some((line) => line.asset_unit_id === unit.id)) {
+        return;
+    }
+
+    const blank = form.lines.find((line) => !line.asset_unit_id);
+    if (blank) {
+        blank.asset_unit_id = unit.id;
+        return;
+    }
+
+    form.lines.push({
+        asset_unit_id: unit.id,
+        notes: '',
+    });
 };
 
 const submit = () => {
@@ -163,6 +199,22 @@ const submit = () => {
                         Unit asset yang dipinjam
                     </h3>
                     <button type="button" class="btn-secondary" @click="addLine">+ Baris</button>
+                </div>
+                <div class="border-b border-slate-100 px-4 py-3">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-600">
+                        Scan asset tag / serial
+                    </label>
+                    <BarcodeScanInput
+                        mode="custom"
+                        autofocus
+                        placeholder="Scan AST-… atau serial…"
+                        :resolve-fn="resolveBorrowScan"
+                        @resolved="onBarcodeResolved"
+                    />
+                    <p class="mt-1 text-xs text-slate-500">
+                        Hanya unit berstatus available di daftar. Scan ganda unit yang sama
+                        diabaikan.
+                    </p>
                 </div>
                 <div class="space-y-3 p-4">
                     <div
